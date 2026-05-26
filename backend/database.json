@@ -1,0 +1,19 @@
+{
+  "documents": [
+    {
+      "id": "d1",
+      "doctorEmail": "doctor@test.com",
+      "patientEmail": "patient@test.com",
+      "content": "Follow-up required in 2 weeks."
+    }
+  ],
+  "slots": [
+    {
+      "id": "s1",
+      "date": "2026-05-26",
+      "time": "10:00 AM",
+      "isBooked": false,
+      "bookedBy": null
+    }
+  ]
+}
