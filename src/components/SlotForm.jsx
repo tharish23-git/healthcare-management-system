@@ -4,17 +4,22 @@ export default function SlotForm({ slots, setSlots }) {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
 
-  const addSlot = () => {
-    if (!date || !time) return;
+  const addSlot = async () => {
+  const slotData = { date, time }; // Assuming date/time are state variables
+  
+  const response = await fetch("http://localhost:5000/api/slots", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(slotData)
+  });
 
-    setSlots([
-      ...slots,
-      { id: Date.now(), date, time, isBooked: false }
-    ]);
-
-    setDate("");
-    setTime("");
-  };
+  if (response.ok) {
+    const savedSlot = await response.json();
+    setSlots([...slots, savedSlot]); // Now it updates with the DB record
+  } else {
+    alert("Could not save to database");
+  }
+};
 
   return (
     <div style={styles.card}>

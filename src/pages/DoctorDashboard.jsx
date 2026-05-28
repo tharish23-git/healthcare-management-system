@@ -10,32 +10,62 @@ export default function DoctorDashboard({ user, setUser, slots, setSlots, docume
 
   // CREATE DOCUMENT
   const addDocument = async () => {
-    if (!newEmail || !newNotes) return;
-    const res = await fetch("http://localhost:5000/api/documents", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ patientEmail: newEmail, doctorEmail: user.email, content: newNotes })
-    });
-    const data = await res.json();
-    setDocuments([...documents, data]);
-    setNewEmail(""); setNewNotes("");
+    if (!newEmail || !newNotes) {
+      alert("Fields cannot be empty!");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/api/documents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          patientEmail: newEmail, 
+          doctorEmail: user?.email, 
+          content: newNotes 
+        })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        alert("Server Error: " + JSON.stringify(errorData));
+        return;
+      }
+
+      const data = await res.json();
+      setDocuments(prevDocs => [...prevDocs, data]); 
+      setNewEmail(""); 
+      setNewNotes("");
+    } catch (err) {
+      console.error("NETWORK ERROR:", err);
+      alert("Connection failed. Check server console.");
+    }
   };
 
   // UPDATE DOCUMENT
   const updateDocument = async (id) => {
-    await fetch(`http://localhost:5000/api/documents/${String(id)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: editText })
-    });
-    setDocuments(documents.map(d => String(d.id) === String(id) ? { ...d, content: editText } : d));
-    setEditingDocId(null);
+    try {
+      const res = await fetch(`http://localhost:5000/api/documents/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editText })
+      });
+
+      if (res.ok) {
+        setDocuments(prev => prev.map(d => 
+          ((d._id || d.id) === id) ? { ...d, content: editText } : d
+        ));
+        setEditingDocId(null);
+      }
+    } catch (err) {
+      console.error("Update failed", err);
+    }
   };
 
   // DELETE DOCUMENT
   const deleteDocument = async (id) => {
     await fetch(`http://localhost:5000/api/documents/${String(id)}`, { method: "DELETE" });
-    setDocuments(documents.filter(d => String(d.id) !== String(id)));
+    setDocuments(documents.filter(d => String(d._id || d.id) !== String(id)));
   };
 
   return (
@@ -79,28 +109,31 @@ export default function DoctorDashboard({ user, setUser, slots, setSlots, docume
 
         <div style={styles.card}>
           <h3 style={{ marginBottom: 10, color: "#1d4ed8" }}>All Documents</h3>
-          {documents.map((d) => (
-            <div key={d.id} style={styles.item}>
-              <div style={styles.email}>{d.patientEmail}</div>
-              {editingDocId === d.id ? (
-                <>
-                  <textarea value={editText} onChange={(e) => setEditText(e.target.value)} style={styles.textarea} />
-                  <div style={styles.actions}>
-                    <button onClick={() => updateDocument(d.id)} style={styles.saveBtn}>Save</button>
-                    <button onClick={() => setEditingDocId(null)} style={styles.cancelBtn}>Cancel</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div style={styles.contentBody}>{d.content}</div>
-                  <div style={styles.actions}>
-                    <button onClick={() => { setEditingDocId(d.id); setEditText(d.content); }} style={styles.editBtn}>Edit</button>
-                    <button onClick={() => deleteDocument(d.id)} style={styles.deleteBtn}>Delete</button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
+          {documents.map((d) => {
+            const docId = d._id || d.id;
+            return (
+              <div key={docId} style={styles.item}>
+                <div style={styles.email}>{d.patientEmail}</div>
+                {editingDocId === docId ? (
+                  <>
+                    <textarea value={editText} onChange={(e) => setEditText(e.target.value)} style={styles.textarea} />
+                    <div style={styles.actions}>
+                      <button onClick={() => updateDocument(docId)} style={styles.saveBtn}>Save</button>
+                      <button onClick={() => setEditingDocId(null)} style={styles.cancelBtn}>Cancel</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={styles.contentBody}>{d.content}</div>
+                    <div style={styles.actions}>
+                      <button onClick={() => { setEditingDocId(docId); setEditText(d.content); }} style={styles.editBtn}>Edit</button>
+                      <button onClick={() => deleteDocument(docId)} style={styles.deleteBtn}>Delete</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

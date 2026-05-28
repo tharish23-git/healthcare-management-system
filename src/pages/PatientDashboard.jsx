@@ -1,84 +1,120 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import SlotList from "../components/SlotList";
 import DocumentList from "../components/DocumentList";
 
 export default function PatientDashboard({
   user,
-  setUser, 
-  slots = [], 
+  setUser,
+  slots = [],
   setSlots,
-  documents = [] 
+  documents = []
 }) {
-  
+  const fileInputRef = useRef(null);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+
+  // Safety check: if user is missing, don't break the render
+  if (!user) return <div style={{ padding: 20 }}>Loading account...</div>;
+
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("email", user.email);
+
+    try {
+      const res = await fetch("http://localhost:5000/upload-patient", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Image uploaded successfully!");
+        setAvatarUrl(data.fileUrl);
+      } else {
+        alert("Upload failed: " + (data.error || "Server error"));
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed: Connection error");
+    }
+  };
+
   useEffect(() => {
     const fetchPatientData = async () => {
       try {
         const response = await fetch("http://localhost:5000/api/slots");
-        if (!response.ok) throw new Error("Database offline or unavailable");
+        if (!response.ok) return;
         const data = await response.json();
-        if (typeof setSlots === "function") {
-          setSlots(data);
-        }
+        if (typeof setSlots === "function") setSlots(data);
       } catch (error) {
-        console.error("Error connecting to server database:", error);
+        console.error("Fetch error:", error);
       }
     };
+    fetchPatientData();
+  }, [setSlots]);
 
-    if (user) {
-      fetchPatientData();
-    }
-  }, [user, setSlots]);
-
-  // ✅ FILTER: Show ONLY this specific patient's booked appointments
   const myAppointments = (slots || []).filter(
-    (s) => s && s.bookedBy === user?.email && s.isBooked
+    (s) => s?.bookedBy === user?.email && s?.isBooked
   );
 
-  // ✅ FILTER: Show ONLY medical records addressed to this patient
   const myDocuments = (documents || []).filter(
-    (d) => d && d.patientEmail === user?.email
+    (d) => d?.patientEmail === user?.email
   );
 
-  const cancelBooking = async (id) => {
-    const ok = window.confirm("Are you sure you want to cancel this appointment?");
-    if (!ok) return;
-
-    try {
-      const response = await fetch(`http://localhost:5000/api/slots/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-role": user.role,
-          "x-user-email": user.email
-        },
-        body: JSON.stringify({ isBooked: false, bookedBy: null }) // Reset both fields on backend
-      });
-
-      if (!response.ok) throw new Error("Failed to cancel booking on server");
-
-      // ✅ REFLECT STATE CHANGED: Instantly updates global state so Doctor sees it too
-      if (typeof setSlots === "function") {
-        setSlots(
-          slots.map((s) =>
-            s.id === id ? { ...s, isBooked: false, bookedBy: null } : s
-          )
-        );
-      }
-    } catch (error) {
-      alert(error.message);
+const cancelBooking = async (slotId) => {
+  if (!window.confirm("Are you sure you want to cancel this appointment?")) return;
+  
+  // Ensure we are sending the ID exactly as it appears in your DB
+  // If your DB uses string IDs like "1779876382382", this is correct.
+  const idString = String(slotId).trim(); 
+  
+  try {
+    const response = await fetch(`http://localhost:5000/api/slots/${idString}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        isBooked: false, 
+        bookedBy: null // Clear the email
+      })
+    });
+    
+    if (response.ok) {
+      // Update UI
+      setSlots(slots.map((s) => 
+        (String(s._id || s.id).trim() === idString) 
+          ? { ...s, isBooked: false, bookedBy: null } 
+          : s
+      ));
+    } else {
+      const errorData = await response.json();
+      alert("Error: " + (errorData.error || "Could not cancel"));
     }
-  };
-
+  } catch (error) { 
+    console.error("Network Error:", error);
+    alert("Connection failed."); 
+  }
+};
   return (
     <div style={styles.page}>
       <div style={styles.header}>
         <div style={styles.headerLayout}>
           <div style={styles.userInfo}>
-            <div style={styles.avatar}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
-                <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
-              </svg>
+            <div style={{...styles.avatar, cursor: "pointer", overflow: "hidden"}} onClick={handleAvatarClick}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
+                  <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
+                </svg>
+              )}
             </div>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: "none" }} />
             <div>
               <div style={styles.name}>Patient Account</div>
               <div style={styles.email}>{user?.email}</div>
@@ -100,17 +136,25 @@ export default function PatientDashboard({
         {myAppointments.length === 0 ? (
           <p style={styles.empty}>No appointments yet</p>
         ) : (
-          myAppointments.map((s) => (
-            <div key={s.id} style={styles.card}>
-              <div>
-                <div style={{ fontWeight: "bold", color: "#334155" }}>{s.date}</div>
-                <div style={{ color: "#64748b", marginTop: 2 }}>{s.time}</div>
+          myAppointments.map((s) => {
+            // Calculate ID once to ensure consistency between key and click handler
+            const appointmentId = s._id || s.id;
+            
+            return (
+              <div key={appointmentId} style={styles.card}>
+                <div>
+                  <div style={{ fontWeight: "bold", color: "#334155" }}>{s.date}</div>
+                  <div style={{ color: "#64748b", marginTop: 2 }}>{s.time}</div>
+                </div>
+                <button 
+                  onClick={() => cancelBooking(appointmentId)} 
+                  style={styles.cancelBtn}
+                >
+                  Cancel Appointment
+                </button>
               </div>
-              <button onClick={() => cancelBooking(s.id)} style={styles.cancelBtn}>
-                Cancel Appointment
-              </button>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
