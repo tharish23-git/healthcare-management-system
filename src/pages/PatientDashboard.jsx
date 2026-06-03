@@ -28,7 +28,7 @@ export default function PatientDashboard({
     formData.append("email", user.email);
 
     try {
-      const res = await fetch("http://localhost:5000/upload-patient", {
+      const res = await fetch("http://54.169.40.124:3000/upload-patient", {
         method: "POST",
         body: formData,
       });
@@ -48,7 +48,7 @@ export default function PatientDashboard({
   useEffect(() => {
     const fetchPatientData = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/slots");
+        const response = await fetch("http://54.169.40.124:3000/api/slots");
         if (!response.ok) return;
         const data = await response.json();
         if (typeof setSlots === "function") setSlots(data);
@@ -75,7 +75,7 @@ const cancelBooking = async (slotId) => {
   const idString = String(slotId).trim(); 
   
   try {
-    const response = await fetch(`http://localhost:5000/api/slots/${idString}`, {
+    const response = await fetch(`http://54.169.40.124:3000/api/slots/${idString}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ 

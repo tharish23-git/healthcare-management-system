@@ -2,7 +2,7 @@ export default function SlotList({ slots, setSlots, isDoctor, user }) {
   const bookSlot = async (slotId) => {
     try {
       // 1. Use the correct slotId string
-      const response = await fetch(`http://localhost:5000/api/slots/${slotId}`, {
+      const response = await fetch(`http://54.169.40.124:3000/api/slots/${slotId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

@@ -5,7 +5,7 @@ export default function DoctorDocumentForm({ documents, setDocuments, doctorEmai
   const [content, setContent] = useState("");
 
   const addDocument = async () => {
-    const response = await fetch("http://localhost:5000/api/documents", {
+    const response = await fetch("http://54.169.40.124:3000/documents", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ patientEmail, doctorEmail, content })
