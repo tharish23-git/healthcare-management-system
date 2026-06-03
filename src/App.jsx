@@ -12,10 +12,10 @@ export default function App() {
   useEffect(() => {
     const loadSystemData = async () => {
       try {
-        const slotsRes = await fetch("http://localhost:5000/api/slots");
+        const slotsRes = await fetch("http://54.169.40.124:3000/api/slots");
         if (slotsRes.ok) setSlots(await slotsRes.json());
 
-        const docsRes = await fetch("http://localhost:5000/api/documents");
+        const docsRes = await fetch("http://54.169.40.124:3000/api/documents");
         if (docsRes.ok) setDocuments(await docsRes.json());
       } catch (err) {
         console.error("Failed to load initial backend system arrays:", err);
