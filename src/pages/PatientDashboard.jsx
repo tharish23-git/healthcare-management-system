@@ -28,7 +28,7 @@ export default function PatientDashboard({
     formData.append("email", user.email);
 
     try {
-      const res = await fetch("http://54.169.40.124:3000/upload-patient", {
+      const res = await fetch("https://healthcare-management-system-5v15.onrender.com/upload-patient", {
         method: "POST",
         body: formData,
       });
@@ -48,7 +48,7 @@ export default function PatientDashboard({
   useEffect(() => {
     const fetchPatientData = async () => {
       try {
-        const response = await fetch("http://54.169.40.124:3000/api/slots");
+        const response = await fetch("https://healthcare-management-system-5v15.onrender.com/api/slots");
         if (!response.ok) return;
         const data = await response.json();
         if (typeof setSlots === "function") setSlots(data);
