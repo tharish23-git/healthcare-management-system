@@ -17,6 +17,11 @@ const app = express();
 app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE"] }));
 app.use(express.json());
 
+app.use(express.json());
+
+// ADD THIS LINE ↓
+app.get('/api/health', (req, res) => { res.json({ status: 'OK', server: 'AWS EC2' }); });
+
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB Atlas"))
@@ -94,4 +99,5 @@ app.put('/api/slots/:id', async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log("Server running on port 5000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));RT}`));
