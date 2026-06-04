@@ -16,7 +16,7 @@ export default function DoctorDashboard({ user, setUser, slots, setSlots, docume
     }
 
     try {
-      const res = await fetch("http://54.169.40.124:3000/api/documents", {
+      const res = await fetch("https://healthcare-management-system-5v15.onrender.com/api/documents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -45,7 +45,7 @@ export default function DoctorDashboard({ user, setUser, slots, setSlots, docume
   // UPDATE DOCUMENT
   const updateDocument = async (id) => {
     try {
-      const res = await fetch(`http://54.169.40.124:3000/api/documents/${id}`, {
+      const res = await fetch(`https://healthcare-management-system-5v15.onrender.com/api/documents/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: editText })
@@ -64,7 +64,7 @@ export default function DoctorDashboard({ user, setUser, slots, setSlots, docume
 
   // DELETE DOCUMENT
   const deleteDocument = async (id) => {
-    await fetch(`http://54.169.40.124:3000/api/documents/${String(id)}`, { method: "DELETE" });
+    await fetch(`https://healthcare-management-system-5v15.onrender.com/api/documents/${String(id)}`, { method: "DELETE" });
     setDocuments(documents.filter(d => String(d._id || d.id) !== String(id)));
   };
 
