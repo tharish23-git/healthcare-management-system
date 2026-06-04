@@ -2,7 +2,7 @@ export default function SlotList({ slots, setSlots, isDoctor, user }) {
   const bookSlot = async (slotId) => {
     try {
       // 1. Use the correct slotId string
-      const response = await fetch(`https://healthcare-management-system-5v15.onrender.com/api/slots/${slotId}`, {
+      const response = await fetch(`https://d237u2kiyzl16t.cloudfront.net/api/slots/${slotId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

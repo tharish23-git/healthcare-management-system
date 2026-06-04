@@ -7,7 +7,7 @@ export default function SlotForm({ slots, setSlots }) {
   const addSlot = async () => {
   const slotData = { date, time }; // Assuming date/time are state variables
   
-  const response = await fetch("https://healthcare-management-system-5v15.onrender.com/api/slots", {
+  const response = await fetch("https://d237u2kiyzl16t.cloudfront.net/api/slots", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(slotData)
