@@ -5,7 +5,7 @@ export default function DoctorDocumentForm({ documents, setDocuments, doctorEmai
   const [content, setContent] = useState("");
 
   const addDocument = async () => {
-    const response = await fetch("https://healthcare-management-system-5v15.onrender.com/documents", {
+    const response = await fetch("https://d237u2kiyzl16t.cloudfront.net/api/documents", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ patientEmail, doctorEmail, content })
